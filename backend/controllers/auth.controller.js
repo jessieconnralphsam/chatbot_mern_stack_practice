@@ -48,10 +48,38 @@ export const signup = async (req, res) => {
     }
 };
 
-export const login = (req, res) => {
-    console.log("Login user ni");
+export const login = async (req, res) => {
+    try {
+
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+        const isPasswordCorrect = await bcrypt.compare(password, user?.password || ""); //pag wala ang || "" internal error 
+
+        if (!user || !isPasswordCorrect) {
+			return res.status(400).json({ error: "Mali imong password or username choii" });
+		}
+
+        generateTokenAndSetCookie(user._id, res);
+
+        res.status(200).json({
+			_id: user._id,
+			fullName: user.fullName,
+			username: user.username,
+			profilePic: user.profilePic,
+		});
+
+    } catch (error) {
+        console.error("Error sa login controller", error.message);
+        res.status(500).json({ error: "Internal Error parekoy!" });
+    }
 };
 
 export const logout = (req, res) => {
-    console.log("Logout user ni");
+    try {
+        res.cookie("jwt", "", { maxAge: 0 });
+		res.status(200).json({ message: "bounce nako gar! " });
+    } catch (error) {
+        console.error("Error sa logout controller", error.message);
+        res.status(500).json({ error: "Internal Error parekoy!" });
+    }
 };
