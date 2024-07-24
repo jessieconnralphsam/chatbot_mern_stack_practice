@@ -27,8 +27,13 @@ export const sendMessage = async (req, res) => {
 			conversation.messages.push(newMessage._id);
 		}
 
-        await conversation.save();
-		await newMessage.save();
+
+        //optimization
+        // await conversation.save(); if kani mag run for 1 sec
+		// await newMessage.save(); kani man wait for 1 sec
+
+        //run ni sya in parallel
+        await Promise.all([conversation.save(), newMessage.save()]); //kani mag run sabay
 
         res.status(201).json(newMessage);
 
