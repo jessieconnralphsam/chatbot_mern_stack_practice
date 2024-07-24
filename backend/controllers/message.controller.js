@@ -28,6 +28,8 @@ export const sendMessage = async (req, res) => {
 		}
 
 
+        //socket io functionality
+
         //optimization
         // await conversation.save(); if kani mag run for 1 sec
 		// await newMessage.save(); kani man wait for 1 sec
@@ -42,3 +44,24 @@ export const sendMessage = async (req, res) => {
 		res.status(500).json({ error: "internal error buddii" });
     }
 }
+
+
+export const getMessages = async (req, res) => {
+	try {
+		const { id: userToChatId } = req.params;
+		const senderId = req.user._id;
+
+		const conversation = await Conversation.findOne({
+			participants: { $all: [senderId, userToChatId] },
+		}).populate("messages"); // NOT REFERENCE BUT ACTUAL MESSAGES
+
+		if (!conversation) return res.status(200).json([]);
+
+		const messages = conversation.messages;
+
+		res.status(200).json(messages);
+	} catch (error) {
+		console.log("Error in getMessages controller: ", error.message);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
